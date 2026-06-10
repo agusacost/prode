@@ -8,17 +8,19 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Lock, Clock } from 'lucide-react'
 
 const STAGE_LABELS: Record<string, string> = {
-  group_stage: 'Fase de grupos',
-  round_of_32: 'Ronda de 32',
-  round_of_16: 'Ronda de 16',
+  group_stage:  'Fase de grupos',
+  round_of_16:  'Octavos de final',
   quarterfinal: 'Cuartos de final',
-  semifinal: 'Semifinales',
-  third_place: 'Tercer puesto',
-  final: 'Final',
+  semifinal:    'Semifinales',
+  third_place:  'Tercer puesto',
+  final:        'Final',
 }
+
+const stageOrder = ['group_stage', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final']
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleString('es-AR', {
@@ -27,40 +29,63 @@ function formatDate(dateStr: string) {
   })
 }
 
+interface Group { id: string; code: string; name: string }
+
 export default function FixturePage({ params }: { params: Promise<{ prodeId: string }> }) {
   const [prodeId, setProdeId] = useState('')
   const supabase = createClient()
   const [matches, setMatches] = useState<any[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
+  const [enabledStages, setEnabledStages] = useState<string[]>(['group_stage'])
   const [predictions, setPredictions] = useState<Record<string, { home: number; away: number }>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    params.then(({ prodeId: id }) => {
-      setProdeId(id)
-    })
+    params.then(({ prodeId: id }) => setProdeId(id))
   }, [params])
 
   useEffect(() => {
     if (!prodeId) return
 
     async function fetchData() {
-      const { data: matchesData } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          home_team:teams!home_team_id(name, code, flag_url),
-          away_team:teams!away_team_id(name, code, flag_url),
-          result:match_results(home_goals, away_goals)
-        `)
-        .order('match_date', { ascending: true })
+      const [
+        { data: matchesData },
+        { data: groupsData },
+        { data: configData },
+        { data: predictionsData },
+      ] = await Promise.all([
+        supabase
+          .from('matches')
+          .select(`
+            *,
+            home_team:teams!home_team_id(name, code, flag_url),
+            away_team:teams!away_team_id(name, code, flag_url),
+            result:match_results(home_goals, away_goals)
+          `)
+          .order('match_date', { ascending: true }),
+        supabase
+          .from('tournament_groups')
+          .select('id, code, name')
+          .order('code'),
+        supabase
+          .from('tournament_config')
+          .select('value')
+          .eq('key', 'enabled_stages')
+          .maybeSingle(),
+        supabase
+          .from('predictions')
+          .select('*')
+          .eq('prode_id', prodeId),
+      ])
 
       if (matchesData) setMatches(matchesData)
+      if (groupsData) setGroups(groupsData)
 
-      const { data: predictionsData } = await supabase
-        .from('predictions')
-        .select('*')
-        .eq('prode_id', prodeId)
+      const stages = (configData as any)?.value
+        ? (configData as any).value.split(',')
+        : ['group_stage']
+      setEnabledStages(stages)
 
       if (predictionsData) {
         const pMap: Record<string, { home: number; away: number }> = {}
@@ -111,17 +136,92 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
     )
   }
 
-  // Group by stage
+  const visibleMatches = matches.filter(m => enabledStages.includes(m.stage))
+
   const byStage: Record<string, typeof matches> = {}
-  for (const m of matches) {
+  for (const m of visibleMatches) {
     if (!byStage[m.stage]) byStage[m.stage] = []
     byStage[m.stage].push(m)
   }
 
-  const stageOrder = ['group_stage', 'round_of_32', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final']
+  function renderMatch(match: any) {
+    const homeTeam = match.home_team?.name || match.home_slot || 'TBD'
+    const awayTeam = match.away_team?.name || match.away_slot || 'TBD'
+    const homeFlag = match.home_team?.flag_url
+    const awayFlag = match.away_team?.flag_url
+    const pred = predictions[match.id] || { home: 0, away: 0 }
+    const isPast = new Date(match.match_date) < new Date()
+    const isDisabled = isPast || match.status !== 'scheduled'
+    const result = match.result?.[0]
+
+    return (
+      <Card key={match.id} className={isDisabled ? 'opacity-80' : ''}>
+        <CardContent className="py-3 px-4">
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-center min-w-[80px] text-xs text-muted-foreground">
+              <span>{formatDate(match.match_date)}</span>
+              {isDisabled ? (
+                <Badge variant="secondary" className="mt-1 text-xs gap-1">
+                  <Lock className="size-2.5" />
+                  {match.status === 'finished' ? 'Finalizado' : match.status === 'in_progress' ? 'En curso' : 'Cerrado'}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="mt-1 text-xs gap-1">
+                  <Clock className="size-2.5" />
+                  Abierto
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex flex-1 items-center gap-2">
+              <div className="flex flex-1 items-center justify-end gap-2">
+                <span className="text-sm font-medium text-right leading-tight">{homeTeam}</span>
+                {homeFlag && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={homeFlag} alt="" className="w-6 h-4 object-cover rounded-sm shrink-0" />
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Input
+                  type="number" min="0" max="20"
+                  value={pred.home}
+                  disabled={isDisabled}
+                  onChange={e => setPredictions(p => ({ ...p, [match.id]: { ...pred, home: parseInt(e.target.value) || 0 } }))}
+                  className="w-12 text-center px-1 h-9 font-mono text-base disabled:opacity-60"
+                />
+                <span className="text-muted-foreground font-semibold text-sm">-</span>
+                <Input
+                  type="number" min="0" max="20"
+                  value={pred.away}
+                  disabled={isDisabled}
+                  onChange={e => setPredictions(p => ({ ...p, [match.id]: { ...pred, away: parseInt(e.target.value) || 0 } }))}
+                  className="w-12 text-center px-1 h-9 font-mono text-base disabled:opacity-60"
+                />
+              </div>
+
+              <div className="flex flex-1 items-center gap-2">
+                {awayFlag && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={awayFlag} alt="" className="w-6 h-4 object-cover rounded-sm shrink-0" />
+                )}
+                <span className="text-sm font-medium leading-tight">{awayTeam}</span>
+              </div>
+            </div>
+
+            {result && (
+              <div className="hidden sm:flex items-center gap-1 text-sm font-mono font-semibold shrink-0 min-w-[40px] justify-center">
+                <span className="text-muted-foreground">{result.home_goals}–{result.away_goals}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Mis predicciones</h2>
         <form onSubmit={handleSubmit}>
@@ -134,107 +234,46 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
         </form>
       </div>
 
-      {stageOrder.filter(s => byStage[s]?.length > 0).map(stage => (
-        <section key={stage} className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            {STAGE_LABELS[stage] ?? stage}
-          </h3>
-          <div className="space-y-2">
-            {byStage[stage].map(match => {
-              const homeTeam = match.home_team?.name || match.home_slot || 'TBD'
-              const awayTeam = match.away_team?.name || match.away_slot || 'TBD'
-              const homeFlag = match.home_team?.flag_url
-              const awayFlag = match.away_team?.flag_url
-              const pred = predictions[match.id] || { home: 0, away: 0 }
-              const isPast = new Date(match.match_date) < new Date()
-              const isDisabled = isPast || match.status !== 'scheduled'
-              const result = match.result?.[0]
+      <Tabs defaultValue="grupo">
+        <TabsList>
+          <TabsTrigger value="grupo">Por grupo</TabsTrigger>
+          <TabsTrigger value="fecha">Por fecha</TabsTrigger>
+        </TabsList>
 
-              return (
-                <Card key={match.id} className={isDisabled ? 'opacity-80' : ''}>
-                  <CardContent className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      {/* Date & status */}
-                      <div className="hidden sm:flex flex-col items-center min-w-[80px] text-xs text-muted-foreground">
-                        <span>{formatDate(match.match_date)}</span>
-                        {isDisabled && (
-                          <Badge variant="secondary" className="mt-1 text-xs gap-1">
-                            <Lock className="size-2.5" />
-                            {match.status === 'finished' ? 'Finalizado' : match.status === 'in_progress' ? 'En curso' : 'Cerrado'}
-                          </Badge>
-                        )}
-                        {!isDisabled && (
-                          <Badge variant="outline" className="mt-1 text-xs gap-1">
-                            <Clock className="size-2.5" />
-                            Abierto
-                          </Badge>
-                        )}
-                      </div>
+        {/* Tab: Por grupo — solo group_stage, agrupado A→L */}
+        <TabsContent value="grupo" className="space-y-8 mt-4">
+          {groups.map(group => {
+            const groupMatches = visibleMatches.filter(
+              m => m.stage === 'group_stage' && m.group_id === group.id
+            )
+            if (!groupMatches.length) return null
+            return (
+              <section key={group.id} className="space-y-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  Grupo {group.code}
+                </h3>
+                <div className="space-y-2">
+                  {groupMatches.map(renderMatch)}
+                </div>
+              </section>
+            )
+          })}
+        </TabsContent>
 
-                      {/* Match */}
-                      <div className="flex flex-1 items-center gap-2">
-                        {/* Home team */}
-                        <div className="flex flex-1 items-center justify-end gap-2">
-                          <span className="text-sm font-medium text-right leading-tight">{homeTeam}</span>
-                          {homeFlag && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={homeFlag} alt="" className="w-6 h-4 object-cover rounded-sm shrink-0" />
-                          )}
-                        </div>
-
-                        {/* Prediction inputs */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="20"
-                            value={pred.home}
-                            disabled={isDisabled}
-                            onChange={(e) => setPredictions(p => ({
-                              ...p,
-                              [match.id]: { ...pred, home: parseInt(e.target.value) || 0 },
-                            }))}
-                            className="w-12 text-center px-1 h-9 font-mono text-base disabled:opacity-60"
-                          />
-                          <span className="text-muted-foreground font-semibold text-sm">-</span>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="20"
-                            value={pred.away}
-                            disabled={isDisabled}
-                            onChange={(e) => setPredictions(p => ({
-                              ...p,
-                              [match.id]: { ...pred, away: parseInt(e.target.value) || 0 },
-                            }))}
-                            className="w-12 text-center px-1 h-9 font-mono text-base disabled:opacity-60"
-                          />
-                        </div>
-
-                        {/* Away team */}
-                        <div className="flex flex-1 items-center gap-2">
-                          {awayFlag && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={awayFlag} alt="" className="w-6 h-4 object-cover rounded-sm shrink-0" />
-                          )}
-                          <span className="text-sm font-medium leading-tight">{awayTeam}</span>
-                        </div>
-                      </div>
-
-                      {/* Result if finished */}
-                      {result && (
-                        <div className="hidden sm:flex items-center gap-1 text-sm font-mono font-semibold shrink-0 min-w-[40px] justify-center">
-                          <span className="text-muted-foreground">{result.home_goals}–{result.away_goals}</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </section>
-      ))}
+        {/* Tab: Por fecha — todos los stages habilitados en orden */}
+        <TabsContent value="fecha" className="space-y-8 mt-4">
+          {stageOrder.filter(s => byStage[s]?.length > 0).map(stage => (
+            <section key={stage} className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                {STAGE_LABELS[stage] ?? stage}
+              </h3>
+              <div className="space-y-2">
+                {byStage[stage].map(renderMatch)}
+              </div>
+            </section>
+          ))}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

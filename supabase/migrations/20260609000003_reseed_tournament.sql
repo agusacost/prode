@@ -1,4 +1,13 @@
--- Seed data — FIFA World Cup 2026 (fixture oficial)
+-- Reset tournament data: clear old fixture and insert FIFA World Cup 2026 (48 teams, 12 groups)
+-- Preserves: users, prodes, prode_members
+
+TRUNCATE TABLE
+  public.champion_predictions,
+  public.predictions,
+  public.match_results,
+  public.matches,
+  public.teams,
+  public.tournament_groups;
 
 -- 12 Grupos
 insert into public.tournament_groups (id, name, code, stage) values
@@ -174,38 +183,58 @@ from (values
   ('CRO','GHA','2026-06-27 21:00:00+00','Lincoln Financial Field, Filadelfia',       'L')
 ) as m(home_code, away_code, match_date, venue, group_code);
 
--- Octavos de final — 8 partidos, 16 clasificados (12 primeros + 4 mejores segundos)
+-- Ronda de 32 (P73–P88)
 insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)
 values
-  (null, null, '1° Grupo A', '2° Grupo B', 'round_of_16', '2026-07-01 19:00:00+00', 'Estadio Azteca, Ciudad de México',    'scheduled'),
-  (null, null, '1° Grupo C', '2° Grupo D', 'round_of_16', '2026-07-01 22:00:00+00', 'MetLife Stadium, Nueva York/NJ',      'scheduled'),
-  (null, null, '1° Grupo B', '2° Grupo A', 'round_of_16', '2026-07-02 19:00:00+00', 'SoFi Stadium, Los Ángeles',           'scheduled'),
-  (null, null, '1° Grupo D', '2° Grupo C', 'round_of_16', '2026-07-02 22:00:00+00', 'Levi''s Stadium, San Francisco',      'scheduled'),
-  (null, null, '1° Grupo E', '2° Grupo F', 'round_of_16', '2026-07-03 19:00:00+00', 'AT&T Stadium, Dallas',                'scheduled'),
-  (null, null, '1° Grupo G', '2° Grupo H', 'round_of_16', '2026-07-03 22:00:00+00', 'NRG Stadium, Houston',                'scheduled'),
-  (null, null, '1° Grupo F', '2° Grupo E', 'round_of_16', '2026-07-04 19:00:00+00', 'Hard Rock Stadium, Miami',            'scheduled'),
-  (null, null, '1° Grupo H', '2° Grupo G', 'round_of_16', '2026-07-04 22:00:00+00', 'Lumen Field, Seattle',                'scheduled');
+  (null, null, '2° Grupo A',         '2° Grupo B',            'round_of_32', '2026-06-28 19:00:00+00', 'SoFi Stadium, Los Ángeles',          'scheduled'),
+  (null, null, '1° Grupo E',         'Mejor 3° (A/B/C/D/F)',  'round_of_32', '2026-06-29 20:30:00+00', 'Gillette Stadium, Boston',            'scheduled'),
+  (null, null, '1° Grupo C',         '2° Grupo F',            'round_of_32', '2026-06-29 17:00:00+00', 'NRG Stadium, Houston',                'scheduled'),
+  (null, null, '1° Grupo F',         '2° Grupo C',            'round_of_32', '2026-06-30 01:00:00+00', 'Estadio BBVA, Guadalupe',             'scheduled'),
+  (null, null, '2° Grupo E',         '2° Grupo I',            'round_of_32', '2026-06-30 17:00:00+00', 'AT&T Stadium, Dallas',                'scheduled'),
+  (null, null, '1° Grupo I',         'Mejor 3° (C/D/F/G/H)', 'round_of_32', '2026-06-30 21:00:00+00', 'MetLife Stadium, Nueva York/NJ',      'scheduled'),
+  (null, null, '1° Grupo G',         'Mejor 3° (A/E/H/I/J)', 'round_of_32', '2026-07-01 20:00:00+00', 'Lumen Field, Seattle',                'scheduled'),
+  (null, null, '1° Grupo A',         'Mejor 3° (C/E/F/H/I)', 'round_of_32', '2026-07-01 01:00:00+00', 'Estadio Azteca, Ciudad de México',    'scheduled'),
+  (null, null, '1° Grupo L',         'Mejor 3° (E/H/I/J/K)', 'round_of_32', '2026-07-01 16:00:00+00', 'Mercedes-Benz Stadium, Atlanta',      'scheduled'),
+  (null, null, '1° Grupo D',         'Mejor 3° (B/E/F/I/J)', 'round_of_32', '2026-07-02 00:00:00+00', 'Levi''s Stadium, San Francisco',      'scheduled'),
+  (null, null, '1° Grupo H',         '2° Grupo J',            'round_of_32', '2026-07-02 19:00:00+00', 'SoFi Stadium, Los Ángeles',           'scheduled'),
+  (null, null, '2° Grupo K',         '2° Grupo L',            'round_of_32', '2026-07-02 23:00:00+00', 'BMO Field, Toronto',                  'scheduled'),
+  (null, null, '1° Grupo J',         '2° Grupo H',            'round_of_32', '2026-07-03 22:00:00+00', 'Hard Rock Stadium, Miami',            'scheduled'),
+  (null, null, '1° Grupo B',         'Mejor 3° (E/F/G/I/J)', 'round_of_32', '2026-07-03 03:00:00+00', 'BC Place, Vancouver',                 'scheduled'),
+  (null, null, '2° Grupo D',         '2° Grupo G',            'round_of_32', '2026-07-03 18:00:00+00', 'AT&T Stadium, Dallas',                'scheduled'),
+  (null, null, '1° Grupo K',         'Mejor 3° (D/E/I/J/L)', 'round_of_32', '2026-07-04 01:30:00+00', 'Arrowhead Stadium, Kansas City',      'scheduled');
 
--- Cuartos de final
+-- Ronda de 16 (P89–P96)
 insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)
 values
-  (null, null, 'Gan. 8vo 1', 'Gan. 8vo 2', 'quarterfinal', '2026-07-06 19:00:00+00', 'Gillette Stadium, Boston',            'scheduled'),
-  (null, null, 'Gan. 8vo 3', 'Gan. 8vo 4', 'quarterfinal', '2026-07-07 19:00:00+00', 'BC Place, Vancouver',                 'scheduled'),
-  (null, null, 'Gan. 8vo 5', 'Gan. 8vo 6', 'quarterfinal', '2026-07-09 19:00:00+00', 'Mercedes-Benz Stadium, Atlanta',      'scheduled'),
-  (null, null, 'Gan. 8vo 7', 'Gan. 8vo 8', 'quarterfinal', '2026-07-10 19:00:00+00', 'Arrowhead Stadium, Kansas City',      'scheduled');
+  (null, null, 'Gan. P74', 'Gan. P77', 'round_of_16', '2026-07-04 21:00:00+00', 'Lincoln Financial Field, Filadelfia', 'scheduled'),
+  (null, null, 'Gan. P73', 'Gan. P75', 'round_of_16', '2026-07-04 17:00:00+00', 'NRG Stadium, Houston',                'scheduled'),
+  (null, null, 'Gan. P76', 'Gan. P78', 'round_of_16', '2026-07-05 20:00:00+00', 'MetLife Stadium, Nueva York/NJ',      'scheduled'),
+  (null, null, 'Gan. P79', 'Gan. P80', 'round_of_16', '2026-07-06 00:00:00+00', 'Estadio Azteca, Ciudad de México',    'scheduled'),
+  (null, null, 'Gan. P83', 'Gan. P84', 'round_of_16', '2026-07-06 19:00:00+00', 'AT&T Stadium, Dallas',                'scheduled'),
+  (null, null, 'Gan. P81', 'Gan. P82', 'round_of_16', '2026-07-07 00:00:00+00', 'Lumen Field, Seattle',                'scheduled'),
+  (null, null, 'Gan. P86', 'Gan. P88', 'round_of_16', '2026-07-07 16:00:00+00', 'Mercedes-Benz Stadium, Atlanta',      'scheduled'),
+  (null, null, 'Gan. P85', 'Gan. P87', 'round_of_16', '2026-07-07 20:00:00+00', 'BC Place, Vancouver',                 'scheduled');
 
--- Semifinales
+-- Cuartos de final (P97–P100)
 insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)
 values
-  (null, null, 'Gan. 4to 1', 'Gan. 4to 2', 'semifinal', '2026-07-14 19:00:00+00', 'AT&T Stadium, Dallas',           'scheduled'),
-  (null, null, 'Gan. 4to 3', 'Gan. 4to 4', 'semifinal', '2026-07-15 19:00:00+00', 'MetLife Stadium, Nueva York/NJ', 'scheduled');
+  (null, null, 'Gan. P89', 'Gan. P90', 'quarterfinal', '2026-07-09 20:00:00+00', 'Gillette Stadium, Boston',        'scheduled'),
+  (null, null, 'Gan. P93', 'Gan. P94', 'quarterfinal', '2026-07-10 19:00:00+00', 'SoFi Stadium, Los Ángeles',       'scheduled'),
+  (null, null, 'Gan. P91', 'Gan. P92', 'quarterfinal', '2026-07-11 21:00:00+00', 'Hard Rock Stadium, Miami',        'scheduled'),
+  (null, null, 'Gan. P95', 'Gan. P96', 'quarterfinal', '2026-07-12 01:00:00+00', 'Arrowhead Stadium, Kansas City',  'scheduled');
 
--- Tercer puesto
+-- Semifinales (P101–P102)
 insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)
 values
-  (null, null, 'Per. SF 1', 'Per. SF 2', 'third_place', '2026-07-18 19:00:00+00', 'Hard Rock Stadium, Miami', 'scheduled');
+  (null, null, 'Gan. P97',  'Gan. P98',  'semifinal', '2026-07-14 19:00:00+00', 'AT&T Stadium, Dallas',           'scheduled'),
+  (null, null, 'Gan. P99',  'Gan. P100', 'semifinal', '2026-07-15 19:00:00+00', 'Mercedes-Benz Stadium, Atlanta', 'scheduled');
 
--- Final
+-- Tercer puesto (P103)
 insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)
 values
-  (null, null, 'Gan. SF 1', 'Gan. SF 2', 'final', '2026-07-19 19:00:00+00', 'MetLife Stadium, Nueva York/NJ', 'scheduled');
+  (null, null, 'Per. P101', 'Per. P102', 'third_place', '2026-07-18 21:00:00+00', 'Hard Rock Stadium, Miami', 'scheduled');
+
+-- Final (P104)
+insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)
+values
+  (null, null, 'Gan. P101', 'Gan. P102', 'final', '2026-07-19 19:00:00+00', 'MetLife Stadium, Nueva York/NJ', 'scheduled');

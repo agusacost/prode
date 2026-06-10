@@ -11,21 +11,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Trophy } from 'lucide-react'
+import { Trophy, CalendarCheck } from 'lucide-react'
 
 const STAGE_ORDER = [
-  'group_stage', 'round_of_32', 'round_of_16',
-  'quarterfinal', 'semifinal', 'third_place', 'final',
+  'group_stage', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final',
 ]
 
 const STAGE_LABELS: Record<string, string> = {
-  group_stage: 'Fase de grupos',
-  round_of_32: 'Ronda de 32',
-  round_of_16: 'Ronda de 16',
+  group_stage:  'Fase de grupos',
+  round_of_16:  'Octavos de final',
   quarterfinal: 'Cuartos de final',
-  semifinal: 'Semifinales',
-  third_place: 'Tercer puesto',
-  final: 'Final',
+  semifinal:    'Semifinales',
+  third_place:  'Tercer puesto',
+  final:        'Final',
 }
 
 function formatUTC(dateStr: string) {
@@ -120,10 +118,16 @@ export default async function AdminPage() {
     <div className="space-y-10">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Cargar resultados</h2>
-        <Link href="/admin/campeon" className={cn(buttonVariants({ variant: 'outline' }))}>
-          <Trophy className="size-4 mr-2" />
-          Declarar campeón
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/rondas" className={cn(buttonVariants({ variant: 'outline' }))}>
+            <CalendarCheck className="size-4 mr-2" />
+            Habilitar rondas
+          </Link>
+          <Link href="/admin/campeon" className={cn(buttonVariants({ variant: 'outline' }))}>
+            <Trophy className="size-4 mr-2" />
+            Declarar campeón
+          </Link>
+        </div>
       </div>
 
       {STAGE_ORDER.filter((s) => byStage[s]?.length > 0).map((stage) => {
