@@ -12,13 +12,15 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Trophy, CalendarCheck } from 'lucide-react'
+import ResolveButton from './bracket/resolve-button'
 
 const STAGE_ORDER = [
-  'group_stage', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final',
+  'group_stage', 'round_of_32', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final',
 ]
 
 const STAGE_LABELS: Record<string, string> = {
   group_stage:  'Fase de grupos',
+  round_of_32:  'Dieciseisavos de final',
   round_of_16:  'Octavos de final',
   quarterfinal: 'Cuartos de final',
   semifinal:    'Semifinales',
@@ -108,6 +110,8 @@ export default async function AdminPage() {
 
   if (!matches) return null
 
+  const r32Pending = matches.filter(m => m.stage === 'round_of_32' && !m.home_team_id).length
+
   const byStage: Record<string, typeof matches> = {}
   for (const match of matches) {
     if (!byStage[match.stage]) byStage[match.stage] = []
@@ -118,7 +122,8 @@ export default async function AdminPage() {
     <div className="space-y-10">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Cargar resultados</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <ResolveButton pendingCount={r32Pending} />
           <Link href="/admin/rondas" className={cn(buttonVariants({ variant: 'outline' }))}>
             <CalendarCheck className="size-4 mr-2" />
             Habilitar rondas

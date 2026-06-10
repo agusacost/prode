@@ -46,6 +46,17 @@ export async function savePredictions(formData: FormData) {
     return { error: { general: ['You are not a member of this prode'] } }
   }
 
+  // Block predictions for matches closing within 1 hour
+  const { data: closedMatches } = await supabase
+    .from('matches')
+    .select('id')
+    .in('id', parsed.data.predictions.map(p => p.matchId))
+    .lte('match_date', new Date(Date.now() + 60 * 60 * 1000).toISOString())
+
+  if (closedMatches?.length) {
+    return { error: { general: ['Uno o más partidos ya cerraron sus predicciones (1h antes del inicio)'] } }
+  }
+
   // Prepare predictions for upsert
   const predictionsToInsert = parsed.data.predictions.map(p => ({
     prode_id: parsed.data.prodeId,

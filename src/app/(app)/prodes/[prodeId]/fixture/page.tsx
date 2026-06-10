@@ -13,6 +13,7 @@ import { Lock, Clock } from 'lucide-react'
 
 const STAGE_LABELS: Record<string, string> = {
   group_stage:  'Fase de grupos',
+  round_of_32:  'Dieciseisavos de final',
   round_of_16:  'Octavos de final',
   quarterfinal: 'Cuartos de final',
   semifinal:    'Semifinales',
@@ -20,7 +21,7 @@ const STAGE_LABELS: Record<string, string> = {
   final:        'Final',
 }
 
-const stageOrder = ['group_stage', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final']
+const stageOrder = ['group_stage', 'round_of_32', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final']
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleString('es-AR', {
@@ -150,7 +151,7 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
     const homeFlag = match.home_team?.flag_url
     const awayFlag = match.away_team?.flag_url
     const pred = predictions[match.id] || { home: 0, away: 0 }
-    const isPast = new Date(match.match_date) < new Date()
+    const isPast = new Date(match.match_date).getTime() - Date.now() < 60 * 60 * 1000
     const isDisabled = isPast || match.status !== 'scheduled'
     const result = match.result?.[0]
 

@@ -3,15 +3,16 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { BarChart2, List, Map, Users, Star, Trophy } from 'lucide-react'
+import { BarChart2, List, Map, Users, Star, Trophy, GitBranch } from 'lucide-react'
 
 const tabs = [
-  { label: 'Posiciones', href: (id: string) => `/prodes/${id}`, icon: BarChart2 },
-  { label: 'Mis predicciones', href: (id: string) => `/prodes/${id}/fixture`, icon: List },
-  { label: 'Grupos', href: (id: string) => `/prodes/${id}/grupos`, icon: Map },
-  { label: 'Comparar', href: (id: string) => `/prodes/${id}/comparar`, icon: Users },
-  { label: 'Campeón', href: (id: string) => `/prodes/${id}/campeon`, icon: Trophy },
-  { label: 'Mis stats', href: (id: string) => `/prodes/${id}/mis-stats`, icon: Star },
+  { label: 'Posiciones',      href: (id: string) => `/prodes/${id}`,          icon: BarChart2  },
+  { label: 'Mis predicciones', href: (id: string) => `/prodes/${id}/fixture`,  icon: List       },
+  { label: 'Grupos',          href: (id: string) => `/prodes/${id}/grupos`,    icon: Map        },
+  { label: 'Mis cruces',      href: (id: string) => `/prodes/${id}/cruces`,    icon: GitBranch  },
+  { label: 'Comparar',        href: (id: string) => `/prodes/${id}/comparar`,  icon: Users      },
+  { label: 'Campeón',         href: (id: string) => `/prodes/${id}/campeon`,   icon: Trophy     },
+  { label: 'Mis stats',       href: (id: string) => `/prodes/${id}/mis-stats`, icon: Star       },
 ]
 
 export function ProdeTabsNav({ prodeId, prodeName }: { prodeId: string; prodeName?: string }) {

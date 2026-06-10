@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { LoadResultSchema } from '@/lib/schemas/results'
 import { calcularPuntos } from '@/lib/scoring'
+import { advanceBracketWinner } from '@/actions/bracket'
 
 export async function loadResult(formData: FormData) {
   const raw = Object.fromEntries(formData)
@@ -64,6 +65,9 @@ export async function loadResult(formData: FormData) {
 
   // Recalculate points for all predictions on this match
   await recalcularPuntos(parsed.data.matchId)
+
+  // Advance winner to next knockout round (no-op for group_stage)
+  await advanceBracketWinner(parsed.data.matchId)
 
   return { success: true, result }
 }
