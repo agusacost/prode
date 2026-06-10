@@ -8,7 +8,7 @@ export const PredictionRowSchema = z.object({
 
 export const SavePredictionsSchema = z.object({
   prodeId: z.string().uuid('Invalid prode ID'),
-  predictions: z.array(PredictionRowSchema).min(1).max(48),
+  predictions: z.array(PredictionRowSchema).min(1).max(150),
 })
 
 export type PredictionRow = z.infer<typeof PredictionRowSchema>
