@@ -50,6 +50,12 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
     if (!prodeId) return
 
     async function fetchData() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
       const [
         { data: matchesData },
         { data: groupsData },
@@ -76,8 +82,9 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
           .maybeSingle(),
         supabase
           .from('predictions')
-          .select('*')
-          .eq('prode_id', prodeId),
+          .select('match_id, home_goals, away_goals')
+          .eq('prode_id', prodeId)
+          .eq('user_id', user.id),
       ])
 
       if (matchesData) setMatches(matchesData)
