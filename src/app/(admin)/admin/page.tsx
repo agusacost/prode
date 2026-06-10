@@ -100,6 +100,7 @@ export default async function AdminPage() {
     .from('matches')
     .select(`
       id, stage, match_date, venue, status,
+      home_team_id, away_team_id,
       home_team:teams!home_team_id(name, code),
       away_team:teams!away_team_id(name, code),
       home_slot, away_slot,

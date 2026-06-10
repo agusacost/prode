@@ -177,8 +177,11 @@ export async function advanceBracketWinner(matchId: string) {
       .maybeSingle()
 
     if (nextMatch) {
-      const field = nextMatch.home_slot === winnerSlot ? 'home_team_id' : 'away_team_id'
-      await admin.from('matches').update({ [field]: winnerId }).eq('id', nextMatch.id)
+      if (nextMatch.home_slot === winnerSlot) {
+        await admin.from('matches').update({ home_team_id: winnerId }).eq('id', nextMatch.id)
+      } else {
+        await admin.from('matches').update({ away_team_id: winnerId }).eq('id', nextMatch.id)
+      }
     }
   }
 
@@ -193,8 +196,11 @@ export async function advanceBracketWinner(matchId: string) {
       .maybeSingle()
 
     if (thirdMatch) {
-      const field = thirdMatch.home_slot === loserSlot ? 'home_team_id' : 'away_team_id'
-      await admin.from('matches').update({ [field]: loserId }).eq('id', thirdMatch.id)
+      if (thirdMatch.home_slot === loserSlot) {
+        await admin.from('matches').update({ home_team_id: loserId }).eq('id', thirdMatch.id)
+      } else {
+        await admin.from('matches').update({ away_team_id: loserId }).eq('id', thirdMatch.id)
+      }
     }
 
     // Semifinal winner → final
@@ -207,8 +213,11 @@ export async function advanceBracketWinner(matchId: string) {
       .maybeSingle()
 
     if (finalMatch) {
-      const field = finalMatch.home_slot === finalSlot ? 'home_team_id' : 'away_team_id'
-      await admin.from('matches').update({ [field]: winnerId }).eq('id', finalMatch.id)
+      if (finalMatch.home_slot === finalSlot) {
+        await admin.from('matches').update({ home_team_id: winnerId }).eq('id', finalMatch.id)
+      } else {
+        await admin.from('matches').update({ away_team_id: winnerId }).eq('id', finalMatch.id)
+      }
     }
   }
 }
