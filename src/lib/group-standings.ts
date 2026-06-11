@@ -11,6 +11,7 @@ export interface MatchWithResult {
   away_team_id: string | null
   status: string
   result: { home_goals: number; away_goals: number } | null
+  prediction?: { home_goals: number; away_goals: number } | null
 }
 
 export interface StandingRow {
@@ -27,7 +28,8 @@ export interface StandingRow {
 
 export function calcularPosiciones(
   teams: TeamInfo[],
-  matches: MatchWithResult[]
+  matches: MatchWithResult[],
+  mode: 'real' | 'prediction' = 'real'
 ): StandingRow[] {
   const rows: Record<string, StandingRow> = {}
 
@@ -36,14 +38,17 @@ export function calcularPosiciones(
   }
 
   for (const match of matches) {
-    if (match.status !== 'finished' || !match.result) continue
+    const score = mode === 'prediction'
+      ? match.prediction
+      : (match.status === 'finished' ? match.result : null)
+    if (!score) continue
     if (!match.home_team_id || !match.away_team_id) continue
 
     const home = rows[match.home_team_id]
     const away = rows[match.away_team_id]
     if (!home || !away) continue
 
-    const { home_goals: hg, away_goals: ag } = match.result
+    const { home_goals: hg, away_goals: ag } = score
 
     home.played++; away.played++
     home.gf += hg; home.ga += ag
