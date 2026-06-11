@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { LoadResultSchema } from '@/lib/schemas/results'
@@ -72,6 +73,9 @@ export async function loadResult(formData: FormData) {
   // Advance winner to next knockout round (no-op for group_stage)
   await advanceBracketWinner(parsed.data.matchId)
 
+  revalidatePath('/admin')
+  revalidatePath(`/admin/matches/${parsed.data.matchId}`)
+
   return { success: true, result }
 }
 
@@ -96,22 +100,20 @@ async function recalcularPuntos(matchId: string) {
   if (predictionsError || !predictions?.length) return
 
   // Step 3: Compute points and update each prediction
-  const updates = predictions.map(p => ({
-    id: p.id,
-    points_earned: calcularPuntos(
+  for (const p of predictions) {
+    const points = calcularPuntos(
       { home: p.home_goals, away: p.away_goals },
       { home: result.home_goals, away: result.away_goals }
-    ),
-    updated_at: new Date().toISOString(),
-  }))
+    )
 
-  const { error: updateError } = await admin
-    .from('predictions')
-    .upsert(updates as any, { onConflict: 'id' })
+    const { error: updateError } = await admin
+      .from('predictions')
+      .update({ points_earned: points, updated_at: new Date().toISOString() })
+      .eq('id', p.id)
 
-  if (updateError) {
-    console.error('Error updating predictions:', updateError)
-    return
+    if (updateError) {
+      console.error('Error updating prediction:', p.id, updateError)
+    }
   }
 
   // Step 4 & 5: Recalculate totals for each affected (prode_id, user_id) pair
