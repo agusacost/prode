@@ -140,6 +140,12 @@ function GroupCard({ group, mode }: { group: GroupData; mode: Mode }) {
 
         <Separator />
 
+        {mode === 'real' && (
+          <div className="flex justify-end">
+            <span className="text-[10px] text-muted-foreground font-medium">Tu predicción</span>
+          </div>
+        )}
+
         {/* Group matches */}
         <div className="space-y-2">
           {group.matches.map(match => {
@@ -190,7 +196,7 @@ function GroupCard({ group, mode }: { group: GroupData; mode: Mode }) {
 }
 
 export function GruposClient({ groups }: { groups: GroupData[] }) {
-  const [mode, setMode] = useState<Mode>('real')
+  const [mode, setMode] = useState<Mode>('prediction')
 
   return (
     <div className="space-y-8">
