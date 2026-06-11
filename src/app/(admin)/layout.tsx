@@ -34,6 +34,9 @@ export default async function AdminLayout({
               <Badge variant="destructive" className="text-xs">Admin</Badge>
             </div>
             <div className="flex items-center gap-3">
+              <Link href="/admin/predicciones" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
+                Predicciones
+              </Link>
               <Link href="/dashboard" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
                 Ver app
               </Link>
