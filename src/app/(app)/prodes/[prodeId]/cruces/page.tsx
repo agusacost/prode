@@ -104,7 +104,7 @@ export default async function CrucesPage({
     const matches: MatchWithResult[] = groupMatches
       .filter(m => m.group_id === group.id)
       .map(m => {
-        const realResult = (m.result as any)?.[0] ?? null
+        const realResult = (m.result as any) ?? null
         const pred = predMap[m.id]
         return {
           id: m.id,

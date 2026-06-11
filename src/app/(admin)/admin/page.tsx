@@ -60,7 +60,7 @@ function MatchesTable({ matches }: { matches: any[] }) {
           {matches.map((match) => {
             const homeTeam = (match.home_team as any)?.name || match.home_slot || 'TBD'
             const awayTeam = (match.away_team as any)?.name || match.away_slot || 'TBD'
-            const result = (match.result as any)?.[0]
+            const result = (match.result as any)
 
             return (
               <TableRow key={match.id}>

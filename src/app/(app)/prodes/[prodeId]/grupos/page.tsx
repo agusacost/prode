@@ -68,7 +68,7 @@ export default async function GruposPage({
         home_team: (m.home_team as any) ?? null,
         away_team: (m.away_team as any) ?? null,
         status: m.status,
-        result: (m.result as any)?.[0] ?? null,
+        result: (m.result as any) ?? null,
         prediction: predMap[m.id] ?? null,
       })),
     }

@@ -74,7 +74,7 @@ export async function resolveGroupBracket() {
     const groupTeams = teams.filter(t => t.group_id === group.id) as TeamInfo[]
     const matches: MatchWithResult[] = groupMatches
       .filter(m => groupTeams.some(t => t.id === m.home_team_id || t.id === m.away_team_id))
-      .map(m => ({ ...m, result: (m.result as any)?.[0] ?? null }))
+      .map(m => ({ ...m, result: (m.result as any) ?? null }))
     standings[group.code] = calcularPosiciones(groupTeams, matches)
   }
 
@@ -143,7 +143,7 @@ export async function advanceBracketWinner(matchId: string) {
 
   if (!match) return
 
-  const result = (match.result as any)?.[0]
+  const result = (match.result as any)
   if (!result) return
 
   const { home_goals: hg, away_goals: ag } = result

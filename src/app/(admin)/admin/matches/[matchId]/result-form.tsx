@@ -21,7 +21,7 @@ export default function ResultForm({ match, matchId }: Props) {
 
   const homeTeam = match.home_team?.name || match.home_slot || 'TBD'
   const awayTeam = match.away_team?.name || match.away_slot || 'TBD'
-  const result = match.result?.[0]
+  const result = match.result
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()

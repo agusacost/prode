@@ -114,7 +114,7 @@ export default async function CompararPage({
               const awayTeam = (match.away_team as any)?.name || match.away_slot || 'TBD'
               const homeFlag = (match.home_team as any)?.flag_url
               const awayFlag = (match.away_team as any)?.flag_url
-              const result = (match.result as any)?.[0] ?? null
+              const result = (match.result as any) ?? null
 
               return (
                 <Card key={match.id}>

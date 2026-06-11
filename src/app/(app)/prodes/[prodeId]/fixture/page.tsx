@@ -178,7 +178,7 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
     const awayFlag = match.away_team?.flag_url
     const pred = predictions[match.id] || { home: 0, away: 0 }
     const isDisabled = isMatchDisabled(match)
-    const result = match.result?.[0]
+    const result = match.result
 
     return (
       <Card key={match.id} className={isDisabled ? 'opacity-80' : ''}>
