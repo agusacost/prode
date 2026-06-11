@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { SavePredictionsSchema } from '@/lib/schemas/predictions'
+import { isGroupStageLocked } from '@/lib/constants'
 
 export async function savePredictions(formData: FormData) {
   const raw = Object.fromEntries(formData)
@@ -55,6 +56,19 @@ export async function savePredictions(formData: FormData) {
 
   if (closedMatches?.length) {
     return { error: { general: ['Uno o más partidos ya cerraron sus predicciones (1h antes del inicio)'] } }
+  }
+
+  // Block predictions for group-stage matches after the fixed deadline
+  if (isGroupStageLocked()) {
+    const { data: groupStageMatches } = await supabase
+      .from('matches')
+      .select('id')
+      .in('id', parsed.data.predictions.map(p => p.matchId))
+      .eq('stage', 'group_stage')
+
+    if (groupStageMatches?.length) {
+      return { error: { general: ['Las predicciones de la fase de grupos están cerradas'] } }
+    }
   }
 
   // Prepare predictions for upsert

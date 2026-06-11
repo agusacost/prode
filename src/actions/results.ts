@@ -7,8 +7,11 @@ import { calcularPuntos } from '@/lib/scoring'
 import { advanceBracketWinner } from '@/actions/bracket'
 
 export async function loadResult(formData: FormData) {
-  const raw = Object.fromEntries(formData)
-  const parsed = LoadResultSchema.safeParse(raw)
+  const parsed = LoadResultSchema.safeParse({
+    matchId: formData.get('matchId'),
+    homeGoals: Number(formData.get('homeGoals')),
+    awayGoals: Number(formData.get('awayGoals')),
+  })
 
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors }

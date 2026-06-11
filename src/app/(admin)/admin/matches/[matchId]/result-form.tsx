@@ -86,6 +86,9 @@ export default function ResultForm({ match, matchId }: Props) {
                   defaultValue={result?.home_goals ?? 0}
                   className="text-center text-xl font-mono h-14"
                 />
+                {errors?.homeGoals && (
+                  <p className="text-sm text-destructive">{errors.homeGoals[0]}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="awayGoals">Goles — {awayTeam}</Label>
@@ -99,6 +102,9 @@ export default function ResultForm({ match, matchId }: Props) {
                   defaultValue={result?.away_goals ?? 0}
                   className="text-center text-xl font-mono h-14"
                 />
+                {errors?.awayGoals && (
+                  <p className="text-sm text-destructive">{errors.awayGoals[0]}</p>
+                )}
               </div>
             </div>
 

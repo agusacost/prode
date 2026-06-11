@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Lock, Clock } from 'lucide-react'
+import { Lock, Clock, Info } from 'lucide-react'
+import { isGroupStageLocked } from '@/lib/constants'
 
 const STAGE_LABELS: Record<string, string> = {
   group_stage:  'Fase de grupos',
@@ -109,6 +110,13 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
     fetchData()
   }, [prodeId, supabase])
 
+  const groupStageLocked = isGroupStageLocked()
+
+  function isMatchDisabled(match: any) {
+    const isPast = new Date(match.match_date).getTime() - Date.now() < 60 * 60 * 1000
+    return isPast || match.status !== 'scheduled' || (match.stage === 'group_stage' && groupStageLocked)
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
@@ -116,13 +124,24 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
     const formData = new FormData()
     formData.append('prodeId', prodeId)
 
+    const matchById = new Map(matches.map(m => [m.id, m]))
+
     let i = 0
     Object.entries(predictions).forEach(([matchId, pred]) => {
+      const match = matchById.get(matchId)
+      if (match && isMatchDisabled(match)) return
+
       formData.append(`predictions.${i}.matchId`, matchId)
       formData.append(`predictions.${i}.homeGoals`, pred.home.toString())
       formData.append(`predictions.${i}.awayGoals`, pred.away.toString())
       i++
     })
+
+    if (i === 0) {
+      toast.error('No hay predicciones editables para guardar')
+      setSaving(false)
+      return
+    }
 
     const result = await savePredictions(formData)
 
@@ -158,8 +177,7 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
     const homeFlag = match.home_team?.flag_url
     const awayFlag = match.away_team?.flag_url
     const pred = predictions[match.id] || { home: 0, away: 0 }
-    const isPast = new Date(match.match_date).getTime() - Date.now() < 60 * 60 * 1000
-    const isDisabled = isPast || match.status !== 'scheduled'
+    const isDisabled = isMatchDisabled(match)
     const result = match.result?.[0]
 
     return (
@@ -240,6 +258,15 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
             {saving ? 'Guardando...' : 'Guardar predicciones'}
           </Button>
         </form>
+      </div>
+
+      <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+        <Info className="size-3.5 shrink-0" />
+        {groupStageLocked ? (
+          <span>Las predicciones de la fase de grupos están cerradas.</span>
+        ) : (
+          <span>Las predicciones de la fase de grupos cierran el 11/06 a las 15:00 hs (ART).</span>
+        )}
       </div>
 
       <Tabs defaultValue="grupo">
