@@ -112,6 +112,7 @@ export default async function AdminPage() {
   if (!matches) return null
 
   const r32Pending = matches.filter(m => m.stage === 'round_of_32' && !m.home_team_id).length
+  const groupRemaining = matches.filter(m => m.stage === 'group_stage' && m.status !== 'finished').length
 
   const byStage: Record<string, typeof matches> = {}
   for (const match of matches) {
@@ -124,7 +125,7 @@ export default async function AdminPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Cargar resultados</h2>
         <div className="flex flex-wrap gap-2">
-          <ResolveButton pendingCount={r32Pending} />
+          <ResolveButton pendingCount={r32Pending} groupRemaining={groupRemaining} />
           <Link href="/admin/rondas" className={cn(buttonVariants({ variant: 'outline' }))}>
             <CalendarCheck className="size-4 mr-2" />
             Habilitar rondas

@@ -177,22 +177,22 @@ from (values
 -- Dieciseisavos de final (P81–P96) — 24 clasificados + 8 mejores 3ros
 insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)
 values
-  (null, null, '1° Grupo A',  '3° C/E/F/H',  'round_of_32', '2026-06-30 16:00:00+00', 'Estadio Azteca, Ciudad de México',    'scheduled'),
-  (null, null, '1° Grupo B',  '2° Grupo F',  'round_of_32', '2026-06-30 19:00:00+00', 'AT&T Stadium, Dallas',                'scheduled'),
-  (null, null, '1° Grupo E',  '2° Grupo A',  'round_of_32', '2026-06-30 22:00:00+00', 'MetLife Stadium, Nueva York/NJ',      'scheduled'),
-  (null, null, '1° Grupo I',  '3° C/D/F/G',  'round_of_32', '2026-07-01 01:00:00+00', 'Gillette Stadium, Boston',            'scheduled'),
-  (null, null, '1° Grupo F',  '2° Grupo C',  'round_of_32', '2026-07-01 16:00:00+00', 'SoFi Stadium, Los Ángeles',           'scheduled'),
-  (null, null, '2° Grupo E',  '2° Grupo I',  'round_of_32', '2026-07-01 19:00:00+00', 'NRG Stadium, Houston',                'scheduled'),
-  (null, null, '1° Grupo C',  '3° A/B/F/I',  'round_of_32', '2026-07-01 22:00:00+00', 'Hard Rock Stadium, Miami',            'scheduled'),
-  (null, null, '1° Grupo D',  '3° B/E/F/I',  'round_of_32', '2026-07-02 01:00:00+00', 'Levi''s Stadium, San Francisco',      'scheduled'),
-  (null, null, '1° Grupo G',  '3° A/B/C/E',  'round_of_32', '2026-07-02 16:00:00+00', 'Lumen Field, Seattle',                'scheduled'),
-  (null, null, '2° Grupo D',  '2° Grupo G',  'round_of_32', '2026-07-02 19:00:00+00', 'BC Place, Vancouver',                 'scheduled'),
-  (null, null, '1° Grupo H',  '2° Grupo J',  'round_of_32', '2026-07-02 22:00:00+00', 'Mercedes-Benz Stadium, Atlanta',      'scheduled'),
-  (null, null, '1° Grupo J',  '3° B/C/D/E',  'round_of_32', '2026-07-03 01:00:00+00', 'Arrowhead Stadium, Kansas City',      'scheduled'),
-  (null, null, '1° Grupo K',  '3° B/C/G/H',  'round_of_32', '2026-07-03 16:00:00+00', 'Lincoln Financial Field, Filadelfia', 'scheduled'),
-  (null, null, '2° Grupo B',  '2° Grupo K',  'round_of_32', '2026-07-03 19:00:00+00', 'Estadio BBVA, Guadalupe',             'scheduled'),
-  (null, null, '1° Grupo L',  '3° E/H/I/J',  'round_of_32', '2026-07-03 22:00:00+00', 'BMO Field, Toronto',                  'scheduled'),
-  (null, null, '2° Grupo H',  '2° Grupo L',  'round_of_32', '2026-07-04 01:00:00+00', 'Estadio Akron, Guadalajara',          'scheduled');
+  (null, null, '2° Grupo A',  '2° Grupo B',    'round_of_32', '2026-06-30 16:00:00+00', 'Estadio Azteca, Ciudad de México',    'scheduled'),
+  (null, null, '1° Grupo E',  '3° A/B/C/D/F',  'round_of_32', '2026-06-30 19:00:00+00', 'AT&T Stadium, Dallas',                'scheduled'),
+  (null, null, '1° Grupo F',  '2° Grupo C',    'round_of_32', '2026-06-30 22:00:00+00', 'MetLife Stadium, Nueva York/NJ',      'scheduled'),
+  (null, null, '1° Grupo C',  '2° Grupo F',    'round_of_32', '2026-07-01 01:00:00+00', 'Gillette Stadium, Boston',            'scheduled'),
+  (null, null, '1° Grupo I',  '3° C/D/F/G/H',  'round_of_32', '2026-07-01 16:00:00+00', 'SoFi Stadium, Los Ángeles',           'scheduled'),
+  (null, null, '2° Grupo E',  '2° Grupo I',    'round_of_32', '2026-07-01 19:00:00+00', 'NRG Stadium, Houston',                'scheduled'),
+  (null, null, '1° Grupo A',  '3° C/E/F/H/I',  'round_of_32', '2026-07-01 22:00:00+00', 'Hard Rock Stadium, Miami',            'scheduled'),
+  (null, null, '1° Grupo L',  '3° E/H/I/J/K',  'round_of_32', '2026-07-02 01:00:00+00', 'Levi''s Stadium, San Francisco',      'scheduled'),
+  (null, null, '1° Grupo D',  '3° B/E/F/I/J',  'round_of_32', '2026-07-02 16:00:00+00', 'Lumen Field, Seattle',                'scheduled'),
+  (null, null, '1° Grupo G',  '3° A/E/H/I/J',  'round_of_32', '2026-07-02 19:00:00+00', 'BC Place, Vancouver',                 'scheduled'),
+  (null, null, '2° Grupo K',  '2° Grupo L',    'round_of_32', '2026-07-02 22:00:00+00', 'Mercedes-Benz Stadium, Atlanta',      'scheduled'),
+  (null, null, '1° Grupo H',  '2° Grupo J',    'round_of_32', '2026-07-03 01:00:00+00', 'Arrowhead Stadium, Kansas City',      'scheduled'),
+  (null, null, '1° Grupo B',  '3° E/F/G/I/J',  'round_of_32', '2026-07-03 16:00:00+00', 'Lincoln Financial Field, Filadelfia', 'scheduled'),
+  (null, null, '1° Grupo J',  '2° Grupo H',    'round_of_32', '2026-07-03 19:00:00+00', 'Estadio BBVA, Guadalupe',             'scheduled'),
+  (null, null, '1° Grupo K',  '3° D/E/I/J/L',  'round_of_32', '2026-07-03 22:00:00+00', 'BMO Field, Toronto',                  'scheduled'),
+  (null, null, '2° Grupo D',  '2° Grupo G',    'round_of_32', '2026-07-04 01:00:00+00', 'Estadio Akron, Guadalajara',          'scheduled');
 
 -- Octavos de final (P97–P108)
 insert into public.matches (home_team_id, away_team_id, home_slot, away_slot, stage, match_date, venue, status)

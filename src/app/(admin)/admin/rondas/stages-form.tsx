@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const KNOCKOUT_STAGES = [
+  { key: 'round_of_32',  label: 'Dieciseisavos de final' },
   { key: 'round_of_16',  label: 'Octavos de final' },
   { key: 'quarterfinal', label: 'Cuartos de final' },
   { key: 'semifinal',    label: 'Semifinales' },

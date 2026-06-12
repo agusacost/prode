@@ -68,6 +68,11 @@ export async function resolveGroupBracket() {
 
   if (!groups || !teams || !groupMatches) return { error: 'Error cargando datos de grupos' }
 
+  const groupRemaining = groupMatches.filter(m => m.status !== 'finished').length
+  if (groupRemaining > 0) {
+    return { error: `La fase de grupos no está completa (faltan ${groupRemaining} partidos)` }
+  }
+
   // Build standings per group
   const standings: StandingsByGroup = {}
   for (const group of groups) {

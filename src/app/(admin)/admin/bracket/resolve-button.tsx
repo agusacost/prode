@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { GitBranch } from 'lucide-react'
 
-export default function ResolveButton({ pendingCount }: { pendingCount: number }) {
+export default function ResolveButton({ pendingCount, groupRemaining }: { pendingCount: number; groupRemaining: number }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -21,6 +21,15 @@ export default function ResolveButton({ pendingCount }: { pendingCount: number }
       router.refresh()
     }
     setLoading(false)
+  }
+
+  if (groupRemaining > 0) {
+    return (
+      <Button variant="outline" disabled>
+        <GitBranch className="size-4 mr-2" />
+        {`Bracket disponible al terminar grupos (faltan ${groupRemaining})`}
+      </Button>
+    )
   }
 
   return (
