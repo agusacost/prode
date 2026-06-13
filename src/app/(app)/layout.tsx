@@ -17,7 +17,7 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from('users')
-    .select('username')
+    .select('username, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -31,7 +31,7 @@ export default async function AppLayout({
             <Link href="/dashboard" className="text-lg font-bold text-foreground hover:text-primary transition-colors">
               Prode Mundial 2026
             </Link>
-            <UserMenu username={username} />
+            <UserMenu username={username} avatarUrl={profile?.avatar_url ?? null} />
           </div>
         </div>
       </nav>

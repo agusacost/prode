@@ -79,6 +79,62 @@ export async function loadResult(formData: FormData) {
   return { success: true, result }
 }
 
+export async function clearResult(formData: FormData) {
+  const matchId = formData.get('matchId') as string
+
+  if (!matchId || typeof matchId !== 'string') {
+    return { error: { general: ['Invalid matchId'] } }
+  }
+
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: { general: ['Unauthorized'] } }
+  }
+
+  // Verify user is admin
+  const { data: adminUser, error: adminError } = await supabase
+    .from('users')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+
+  if (adminError || !adminUser?.is_admin) {
+    return { error: { general: ['Only admins can clear results'] } }
+  }
+
+  const admin = createAdminClient()
+
+  // Delete match result
+  const { error: deleteError } = await admin
+    .from('match_results')
+    .delete()
+    .eq('match_id', matchId)
+
+  if (deleteError) {
+    return { error: { general: [deleteError.message] } }
+  }
+
+  // Update match status back to scheduled
+  const { error: updateError } = await admin
+    .from('matches')
+    .update({ status: 'scheduled' })
+    .eq('id', matchId)
+
+  if (updateError) {
+    return { error: { general: [updateError.message] } }
+  }
+
+  // Reset points for all predictions on this match
+  await resetearPuntos(matchId)
+
+  revalidatePath('/admin')
+  revalidatePath(`/admin/matches/${matchId}`)
+
+  return { success: true }
+}
+
 async function recalcularPuntos(matchId: string) {
   const admin = createAdminClient()
 
@@ -117,6 +173,68 @@ async function recalcularPuntos(matchId: string) {
   }
 
   // Step 4 & 5: Recalculate totals for each affected (prode_id, user_id) pair
+  const memberKeys = [...new Set(predictions.map(p => `${p.prode_id}::${p.user_id}`))]
+
+  for (const key of memberKeys) {
+    const [prodeId, userId] = key.split('::')
+
+    // Re-aggregate from ALL predictions with earned points in this prode
+    const { data: agg, error: aggError } = await admin
+      .from('predictions')
+      .select('points_earned')
+      .eq('prode_id', prodeId)
+      .eq('user_id', userId)
+      .not('points_earned', 'is', null)
+
+    if (aggError) {
+      console.error('Error aggregating scores:', aggError)
+      continue
+    }
+
+    const totalScore = agg?.reduce((s, r) => s + (r.points_earned ?? 0), 0) ?? 0
+    const exactResults = agg?.filter(r => r.points_earned === 3).length ?? 0
+    const correctSigns = agg?.filter(r => r.points_earned === 1).length ?? 0
+
+    const { error: memberError } = await admin
+      .from('prode_members')
+      .update({
+        total_score: totalScore,
+        exact_results: exactResults,
+        correct_signs: correctSigns,
+      })
+      .eq('prode_id', prodeId)
+      .eq('user_id', userId)
+
+    if (memberError) {
+      console.error('Error updating member scores:', memberError)
+    }
+  }
+}
+
+async function resetearPuntos(matchId: string) {
+  const admin = createAdminClient()
+
+  // Get ALL predictions for this match across ALL prodes
+  const { data: predictions, error: predictionsError } = await admin
+    .from('predictions')
+    .select('id, prode_id, user_id')
+    .eq('match_id', matchId)
+
+  if (predictionsError || !predictions?.length) return
+
+  // Reset points_earned to null for each prediction
+  for (const p of predictions) {
+    const { error: updateError } = await admin
+      .from('predictions')
+      .update({ points_earned: null, updated_at: new Date().toISOString() })
+      .eq('id', p.id)
+
+    if (updateError) {
+      console.error('Error resetting prediction:', p.id, updateError)
+    }
+  }
+
+  // Recalculate totals for each affected (prode_id, user_id) pair
   const memberKeys = [...new Set(predictions.map(p => `${p.prode_id}::${p.user_id}`))]
 
   for (const key of memberKeys) {

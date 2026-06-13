@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Medal } from 'lucide-react'
 
 interface Member {
@@ -130,6 +130,7 @@ export function LeaderboardTable({ initialMembers, prodeId, currentUserId }: Pro
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Avatar className="size-7 shrink-0">
+                      {member.user?.avatar_url && <AvatarImage src={member.user.avatar_url} />}
                       <AvatarFallback className="text-xs bg-muted">
                         {username.slice(0, 2).toUpperCase()}
                       </AvatarFallback>

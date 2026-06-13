@@ -14,20 +14,8 @@ import {
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Trophy } from 'lucide-react'
-
-const STAGE_ORDER = [
-  'group_stage', 'round_of_32', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final',
-]
-
-const STAGE_LABELS: Record<string, string> = {
-  group_stage:  'Fase de grupos',
-  round_of_32:  'Dieciseisavos de final',
-  round_of_16:  'Octavos de final',
-  quarterfinal: 'Cuartos de final',
-  semifinal:    'Semifinales',
-  third_place:  'Tercer puesto',
-  final:        'Final',
-}
+import { PrediccionesMatchesClient } from './predicciones-matches-client'
+import { STAGE_LABELS } from '@/lib/stages'
 
 function formatUTC(dateStr: string) {
   const d = new Date(dateStr)
@@ -40,9 +28,23 @@ function formatUTC(dateStr: string) {
 
 function PointsBadge({ points }: { points: number | null }) {
   if (points === null) return null
-  if (points === 3) return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100 text-xs">+3</Badge>
-  if (points === 1) return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100 text-xs">+1</Badge>
-  return <Badge variant="outline" className="text-muted-foreground text-xs">0</Badge>
+  if (points === 3)
+    return (
+      <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100 text-xs">
+        +3
+      </Badge>
+    )
+  if (points === 1)
+    return (
+      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100 text-xs">
+        +1
+      </Badge>
+    )
+  return (
+    <Badge variant="outline" className="text-muted-foreground text-xs">
+      0
+    </Badge>
+  )
 }
 
 export default async function AdminPrediccionesProdePage({
@@ -65,7 +67,7 @@ export default async function AdminPrediccionesProdePage({
     admin.from('prodes').select('id, name').eq('id', prodeId).maybeSingle(),
     admin
       .from('prode_members')
-      .select('user_id, total_score, user:users(username)')
+      .select('user_id, total_score, user:users(username, avatar_url)')
       .eq('prode_id', prodeId)
       .order('total_score', { ascending: false }),
     admin
@@ -154,69 +156,6 @@ export default async function AdminPrediccionesProdePage({
     }
   })
 
-  // Group matches by stage (and group_stage by group code)
-  const byStage: Record<string, typeof matches> = {}
-  for (const m of matches) {
-    if (!byStage[m.stage]) byStage[m.stage] = []
-    byStage[m.stage].push(m)
-  }
-
-  function MatchCard({ match }: { match: (typeof matches)[number] }) {
-    const homeTeam = (match.home_team as any)?.name || match.home_slot || 'TBD'
-    const awayTeam = (match.away_team as any)?.name || match.away_slot || 'TBD'
-    const homeFlag = (match.home_team as any)?.flag_url
-    const awayFlag = (match.away_team as any)?.flag_url
-    const result = (match.result as any) ?? null
-
-    return (
-      <Card key={match.id}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">
-            <div className="flex items-center gap-2">
-              {homeFlag && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={homeFlag} alt="" className="w-5 h-3.5 object-cover rounded-sm" />
-              )}
-              <span>{homeTeam}</span>
-              <span className="text-muted-foreground font-mono">
-                {result ? `${result.home_goals}–${result.away_goals}` : '—'}
-              </span>
-              <span>{awayTeam}</span>
-              {awayFlag && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={awayFlag} alt="" className="w-5 h-3.5 object-cover rounded-sm" />
-              )}
-            </div>
-            <div className="text-xs text-muted-foreground font-normal mt-0.5">
-              {formatUTC(match.match_date)}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-            {memberList.map(member => {
-              const pred = predIndex[match.id]?.[member.user_id]
-              const username = (member.user as any)?.username ?? 'Desconocido'
-
-              return (
-                <div key={member.user_id} className="rounded-md border p-2 text-xs space-y-1">
-                  <div className="font-medium truncate">{username}</div>
-                  {pred ? (
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-semibold">{pred.home_goals}–{pred.away_goals}</span>
-                      <PointsBadge points={pred.points_earned} />
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground">Sin predicción</span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <div className="space-y-8">
@@ -272,43 +211,7 @@ export default async function AdminPrediccionesProdePage({
         </div>
       </section>
 
-      {STAGE_ORDER.filter(s => byStage[s]?.length > 0).map(stage => {
-        const stageMatches = byStage[stage]
-
-        if (stage === 'group_stage') {
-          const byGroup: Record<string, typeof matches> = {}
-          for (const match of stageMatches) {
-            const code = (match.group as any)?.code ?? 'X'
-            if (!byGroup[code]) byGroup[code] = []
-            byGroup[code].push(match)
-          }
-
-          return (
-            <section key={stage} className="space-y-6">
-              <h3 className="text-xl font-semibold">{STAGE_LABELS[stage]}</h3>
-              {Object.keys(byGroup).sort().map(groupCode => (
-                <div key={groupCode} className="space-y-3">
-                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                    Grupo {groupCode}
-                  </p>
-                  <div className="space-y-3">
-                    {byGroup[groupCode].map(match => <MatchCard key={match.id} match={match} />)}
-                  </div>
-                </div>
-              ))}
-            </section>
-          )
-        }
-
-        return (
-          <section key={stage} className="space-y-3">
-            <h3 className="text-xl font-semibold">{STAGE_LABELS[stage]}</h3>
-            <div className="space-y-3">
-              {stageMatches.map(match => <MatchCard key={match.id} match={match} />)}
-            </div>
-          </section>
-        )
-      })}
+      <PrediccionesMatchesClient matches={matches} memberList={memberList} predIndex={predIndex} />
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">

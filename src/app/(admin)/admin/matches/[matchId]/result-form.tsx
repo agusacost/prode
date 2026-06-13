@@ -2,12 +2,12 @@
 
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { loadResult } from '@/actions/results'
+import { loadResult, clearResult } from '@/actions/results'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, Trash2 } from 'lucide-react'
 
 interface Props {
   match: any
@@ -17,6 +17,7 @@ interface Props {
 export default function ResultForm({ match, matchId }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [clearing, setClearing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null)
 
   const homeTeam = match.home_team?.name || match.home_slot || 'TBD'
@@ -41,6 +42,27 @@ export default function ResultForm({ match, matchId }: Props) {
     }
   }
 
+  async function handleClear() {
+    if (!window.confirm('¿Estás seguro? Esto borrará el resultado y reseteará los puntos.')) {
+      return
+    }
+
+    setClearing(true)
+    setErrors(null)
+
+    const formData = new FormData()
+    formData.set('matchId', matchId)
+
+    const res = await clearResult(formData)
+
+    if ('error' in res) {
+      setErrors(res.error || {})
+      setClearing(false)
+    } else {
+      router.push('/admin')
+    }
+  }
+
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <div>
@@ -51,11 +73,24 @@ export default function ResultForm({ match, matchId }: Props) {
       </div>
 
       {result && (
-        <div className="flex items-center gap-2 rounded-md bg-green-50 border border-green-200 p-3">
-          <CheckCircle className="size-4 text-green-600 shrink-0" />
-          <p className="text-sm font-medium text-green-800">
-            Resultado actual: {homeTeam} {result.home_goals} – {result.away_goals} {awayTeam}
-          </p>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 rounded-md bg-green-50 border border-green-200 p-3">
+            <CheckCircle className="size-4 text-green-600 shrink-0" />
+            <p className="text-sm font-medium text-green-800">
+              Resultado actual: {homeTeam} {result.home_goals} – {result.away_goals} {awayTeam}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={handleClear}
+            disabled={clearing}
+            className="w-full"
+          >
+            <Trash2 className="size-4 mr-2" />
+            {clearing ? 'Limpiando...' : 'Limpiar carga'}
+          </Button>
         </div>
       )}
 
