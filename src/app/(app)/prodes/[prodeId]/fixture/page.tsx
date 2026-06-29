@@ -269,14 +269,14 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
         )}
       </div>
 
-      <Tabs defaultValue="grupo">
+      <Tabs defaultValue="fases">
         <TabsList>
-          <TabsTrigger value="grupo">Por grupo</TabsTrigger>
+          <TabsTrigger value="fases">Por fase</TabsTrigger>
           <TabsTrigger value="fecha">Por fecha</TabsTrigger>
         </TabsList>
 
-        {/* Tab: Por grupo — solo group_stage, agrupado A→L */}
-        <TabsContent value="grupo" className="space-y-8 mt-4">
+        {/* Tab: Por fase — agrupado A→L, seguido de las fases eliminatorias */}
+        <TabsContent value="fases" className="space-y-8 mt-4">
           {groups.map(group => {
             const groupMatches = visibleMatches.filter(
               m => m.stage === 'group_stage' && m.group_id === group.id
@@ -293,6 +293,18 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
               </section>
             )
           })}
+
+          {/* Fases eliminatorias (si están habilitadas) */}
+          {stageOrder.filter(s => s !== 'group_stage' && byStage[s]?.length > 0).map(stage => (
+            <section key={stage} className="space-y-3 pt-4 border-t">
+              <h3 className="text-xl font-bold uppercase tracking-wider">
+                {STAGE_LABELS[stage] ?? stage}
+              </h3>
+              <div className="space-y-2">
+                {byStage[stage].map(renderMatch)}
+              </div>
+            </section>
+          ))}
         </TabsContent>
 
         {/* Tab: Por fecha — todos los stages habilitados en orden */}
