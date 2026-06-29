@@ -42,6 +42,7 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
   const [predictions, setPredictions] = useState<Record<string, { home: number; away: number }>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [selectedStage, setSelectedStage] = useState<string>('all')
 
   useEffect(() => {
     params.then(({ prodeId: id }) => setProdeId(id))
@@ -276,35 +277,65 @@ export default function FixturePage({ params }: { params: Promise<{ prodeId: str
         </TabsList>
 
         {/* Tab: Por fase — agrupado A→L, seguido de las fases eliminatorias */}
-        <TabsContent value="fases" className="space-y-8 mt-4">
-          {groups.map(group => {
-            const groupMatches = visibleMatches.filter(
-              m => m.stage === 'group_stage' && m.group_id === group.id
-            )
-            if (!groupMatches.length) return null
-            return (
-              <section key={group.id} className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  Grupo {group.code}
+        <TabsContent value="fases" className="space-y-4 mt-4">
+          {/* Filtro de rondas */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+            <Button
+              variant={selectedStage === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedStage('all')}
+              type="button"
+              className="shrink-0"
+            >
+              Todas las fases
+            </Button>
+            {stageOrder.filter(s => enabledStages.includes(s)).map(stage => (
+              <Button
+                key={stage}
+                variant={selectedStage === stage ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedStage(stage)}
+                type="button"
+                className="shrink-0"
+              >
+                {STAGE_LABELS[stage] ?? stage}
+              </Button>
+            ))}
+          </div>
+
+          <div className="space-y-8 pt-2">
+            {(selectedStage === 'all' || selectedStage === 'group_stage') && groups.map(group => {
+              const groupMatches = visibleMatches.filter(
+                m => m.stage === 'group_stage' && m.group_id === group.id
+              )
+              if (!groupMatches.length) return null
+              return (
+                <section key={group.id} className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    Grupo {group.code}
+                  </h3>
+                  <div className="space-y-2">
+                    {groupMatches.map(renderMatch)}
+                  </div>
+                </section>
+              )
+            })}
+
+            {/* Fases eliminatorias (si están habilitadas) */}
+            {stageOrder
+              .filter(s => s !== 'group_stage' && byStage[s]?.length > 0)
+              .filter(s => selectedStage === 'all' || selectedStage === s)
+              .map(stage => (
+              <section key={stage} className="space-y-3 pt-4 border-t">
+                <h3 className="text-xl font-bold uppercase tracking-wider">
+                  {STAGE_LABELS[stage] ?? stage}
                 </h3>
                 <div className="space-y-2">
-                  {groupMatches.map(renderMatch)}
+                  {byStage[stage].map(renderMatch)}
                 </div>
               </section>
-            )
-          })}
-
-          {/* Fases eliminatorias (si están habilitadas) */}
-          {stageOrder.filter(s => s !== 'group_stage' && byStage[s]?.length > 0).map(stage => (
-            <section key={stage} className="space-y-3 pt-4 border-t">
-              <h3 className="text-xl font-bold uppercase tracking-wider">
-                {STAGE_LABELS[stage] ?? stage}
-              </h3>
-              <div className="space-y-2">
-                {byStage[stage].map(renderMatch)}
-              </div>
-            </section>
-          ))}
+            ))}
+          </div>
         </TabsContent>
 
         {/* Tab: Por fecha — todos los stages habilitados en orden */}
